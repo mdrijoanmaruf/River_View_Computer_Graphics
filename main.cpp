@@ -19,13 +19,57 @@ void PointLight(const float x, const float y, const float z, const float amb, co
 }
 GLfloat position22 = 0.0f;
 GLfloat speed22 = 0.007f;
+
+// Wing animation variables
+GLfloat wingAngle = 0.0f;
+GLfloat wingSpeed = 0.15f;
+int wingDirection = 1;
+
+// Bird structure for dynamic birds
+struct Bird {
+    float x, y;           // position
+    float speed;          // horizontal speed
+    float wingPhase;      // wing animation phase offset
+    float scale;          // size scale
+    float verticalOffset; // for slight up/down movement
+    float verticalSpeed;  // vertical oscillation speed
+};
+
+// Create multiple birds with different properties
+Bird birds[6] = {
+    {-0.8f, 0.82f, 0.008f, 0.0f, 1.0f, 0.0f, 0.02f},
+    {-0.4f, 0.78f, 0.006f, 1.5f, 0.85f, 0.0f, 0.025f},
+    {0.0f, 0.85f, 0.007f, 3.0f, 0.95f, 0.0f, 0.018f},
+    {0.3f, 0.80f, 0.009f, 2.0f, 0.9f, 0.0f, 0.022f},
+    {0.6f, 0.75f, 0.005f, 4.0f, 1.1f, 0.0f, 0.015f},
+    {-0.2f, 0.88f, 0.0065f, 2.5f, 0.8f, 0.0f, 0.02f}
+};
+
 void birdd(int value)
 {
-    if (position22 > 1.0)
-        position22 = -1.0f;
+    // Update horizontal position for all birds
+    for (int i = 0; i < 6; i++) {
+        birds[i].x += birds[i].speed;
+        if (birds[i].x > 1.3f) {
+            birds[i].x = -1.3f;
+            // Randomize Y position slightly when bird reappears
+            birds[i].y = 0.75f + (float)(rand() % 15) / 100.0f;
+        }
+        // Update vertical oscillation
+        birds[i].verticalOffset = 0.02f * sin(wingAngle * 0.5f + birds[i].wingPhase);
+    }
+    
+    // Update wing animation
+    wingAngle += wingSpeed * wingDirection;
+    if (wingAngle > 0.8f || wingAngle < -0.3f) {
+        wingDirection *= -1;
+    }
+    
     position22 += speed22;
+    if (position22 > 1.0f) position22 = -1.0f;
+    
     glutPostRedisplay();
-    glutTimerFunc(100, birdd, 0);
+    glutTimerFunc(16, birdd, 0);  // ~60 FPS for smooth animation
 }
 GLfloat position4 = 0.0f;
 GLfloat speed4 = -0.01f;
@@ -456,163 +500,138 @@ void backgroundtree()
     glVertex2f(.25f, 0.45f);
     glEnd();
 }
-void bird()
+// Draw a single realistic bird with animated wings at position (x, y)
+void drawSingleBird(float x, float y, float scale, float wingPhase)
 {
     int i;
-
-    GLfloat mm = 0.182f;
-    GLfloat nn = .801f;
-    GLfloat radiusmm = .01f;
-    int triangleAmount = 20;
+    int triangleAmount = 16;
     GLfloat twicePi = 2.0f * PI;
-
+    
+    // Calculate wing angle for this bird (with phase offset for variety)
+    float currentWingAngle = wingAngle + wingPhase;
+    float wingY = sin(currentWingAngle * 3.0f) * 0.035f * scale;  // Wing flap amplitude
+    float wingY2 = sin(currentWingAngle * 3.0f + 0.5f) * 0.025f * scale;  // Secondary feathers
+    
+    glPushMatrix();
+    glTranslatef(x, y, 0.0f);
+    glScalef(scale, scale, 1.0f);
+    
+    // === BIRD BODY (streamlined oval shape) ===
+    GLfloat bodyRadius = 0.018f;
     glBegin(GL_TRIANGLE_FAN);
-    glColor3ub(225, 225, 208);
-    glVertex2f(mm, nn); // center of circle
+    glColor3ub(45, 45, 50);  // Dark gray body
+    glVertex2f(0.0f, 0.0f);
     for (i = 0; i <= triangleAmount; i++)
     {
-        glVertex2f(
-            mm + (radiusmm * cos(i * twicePi / triangleAmount)),
-            nn + (radiusmm * sin(i * twicePi / triangleAmount)));
+        float angle = i * twicePi / triangleAmount;
+        glVertex2f(bodyRadius * 1.8f * cos(angle), bodyRadius * sin(angle));
     }
     glEnd();
-    glBegin(GL_POLYGON);
-    glColor3ub(225, 225, 208);
-    glVertex2f(0.1f, 0.8f);
-    glVertex2f(0.11f, 0.79f);
-    glVertex2f(0.12f, 0.78f);
-    glVertex2f(0.16f, 0.77f);
-    glVertex2f(0.19f, 0.79f);
-    glVertex2f(0.201f, 0.8f);
-    glEnd();
-
-    glBegin(GL_TRIANGLES);
-    glColor3ub(217, 217, 217);
-    glVertex2f(0.175f, 0.8f);
-    glVertex2f(0.15f, 0.8f);
-    glVertex2f(0.14f, 0.84f);
-    glEnd();
-
-    glBegin(GL_TRIANGLES);
-    glColor3ub(242, 242, 242);
-    glVertex2f(0.175f, 0.8f);
-    glVertex2f(0.144f, 0.8f);
-    glVertex2f(0.12f, 0.83f);
-    glEnd();
-    /////2nd bird////
-    glBegin(GL_POLYGON);
-    glColor3ub(225, 225, 208);
-    glVertex2f(-0.02f, 0.8f);
-    glVertex2f(-0.01f, 0.79f);
-    glVertex2f(0.0f, 0.78f);
-    glVertex2f(0.04f, 0.77f);
-    glVertex2f(0.07f, 0.79f);
-    glVertex2f(0.081f, 0.8f);
-    glEnd();
-
-    glBegin(GL_TRIANGLES);
-    glColor3ub(217, 217, 217);
-    glVertex2f(0.055f, 0.8f);
-    glVertex2f(0.03f, 0.8f);
-    glVertex2f(0.02f, 0.84f);
-    glEnd();
-
-    glBegin(GL_TRIANGLES);
-    glColor3ub(242, 242, 242);
-    glVertex2f(0.055f, 0.8f);
-    glVertex2f(0.024f, 0.8f);
-    glVertex2f(0.0f, 0.83f);
-    glEnd();
-
-    GLfloat mmm = 0.062f;
-    GLfloat nnn = .801f;
-    GLfloat radiusmmm = .01f;
-
+    
+    // === BIRD HEAD ===
+    GLfloat headRadius = 0.012f;
+    float headX = 0.025f;
     glBegin(GL_TRIANGLE_FAN);
-    glColor3ub(225, 225, 208);
-    glVertex2f(mmm, nnn); // center of circle
+    glColor3ub(35, 35, 40);  // Slightly darker head
+    glVertex2f(headX, 0.003f);
     for (i = 0; i <= triangleAmount; i++)
     {
-        glVertex2f(
-            mmm + (radiusmmm * cos(i * twicePi / triangleAmount)),
-            nnn + (radiusmmm * sin(i * twicePi / triangleAmount)));
+        float angle = i * twicePi / triangleAmount;
+        glVertex2f(headX + headRadius * cos(angle), 0.003f + headRadius * sin(angle));
     }
     glEnd();
-    /////3rd bird/////
+    
+    // === BEAK ===
+    glBegin(GL_TRIANGLES);
+    glColor3ub(255, 180, 50);  // Orange beak
+    glVertex2f(headX + 0.012f, 0.005f);
+    glVertex2f(headX + 0.012f, 0.0f);
+    glVertex2f(headX + 0.022f, 0.002f);
+    glEnd();
+    
+    // === EYE ===
+    glPointSize(2.0f * scale);
+    glBegin(GL_POINTS);
+    glColor3ub(255, 255, 255);
+    glVertex2f(headX + 0.005f, 0.006f);
+    glEnd();
+    
+    // === TAIL FEATHERS ===
+    glBegin(GL_TRIANGLES);
+    glColor3ub(30, 30, 35);
+    glVertex2f(-0.025f, 0.0f);
+    glVertex2f(-0.045f, 0.012f);
+    glVertex2f(-0.04f, 0.0f);
+    glEnd();
+    
+    glBegin(GL_TRIANGLES);
+    glColor3ub(40, 40, 45);
+    glVertex2f(-0.025f, 0.0f);
+    glVertex2f(-0.042f, -0.008f);
+    glVertex2f(-0.038f, 0.0f);
+    glEnd();
+    
+    // === LEFT WING (animated) ===
     glBegin(GL_POLYGON);
-    glColor3ub(225, 225, 208);
-    glVertex2f(-0.72f, 0.8f);
-    glVertex2f(-0.71f, 0.79f);
-    glVertex2f(-0.7f, 0.78f);
-    glVertex2f(-0.66f, 0.77f);
-    glVertex2f(-0.63f, 0.79f);
-    glVertex2f(-0.619f, 0.8f);
+    glColor3ub(55, 55, 60);  // Wing base color
+    glVertex2f(-0.005f, 0.005f);  // Wing attachment point
+    glVertex2f(-0.015f, 0.015f + wingY * 0.5f);
+    glVertex2f(-0.025f, 0.035f + wingY);  // Wing tip (animated)
+    glVertex2f(-0.01f, 0.025f + wingY * 0.7f);
+    glVertex2f(0.005f, 0.015f + wingY * 0.3f);
+    glVertex2f(0.01f, 0.005f);
     glEnd();
-
-    glBegin(GL_TRIANGLES);
-    glColor3ub(217, 217, 217);
-    glVertex2f(-0.645f, 0.8f);
-    glVertex2f(-0.67f, 0.8f);
-    glVertex2f(-0.68f, 0.84f);
+    
+    // Wing feather details (left)
+    glBegin(GL_LINES);
+    glColor3ub(70, 70, 75);
+    glVertex2f(-0.008f, 0.01f + wingY * 0.4f);
+    glVertex2f(-0.02f, 0.03f + wingY * 0.9f);
+    glVertex2f(-0.003f, 0.01f + wingY * 0.3f);
+    glVertex2f(-0.015f, 0.028f + wingY * 0.85f);
     glEnd();
-
-    glBegin(GL_TRIANGLES);
-    glColor3ub(242, 242, 242);
-    glVertex2f(-0.645f, 0.8f);
-    glVertex2f(-0.676f, 0.8f);
-    glVertex2f(-0.7f, 0.83f);
-    glEnd();
-
-    GLfloat mmmm = -0.638f;
-    GLfloat nnnn = .801f;
-
-    glBegin(GL_TRIANGLE_FAN);
-    glColor3ub(225, 225, 208);
-    glVertex2f(mmmm, nnnn); // center of circle
-    for (i = 0; i <= triangleAmount; i++)
-    {
-        glVertex2f(
-            mmmm + (radiusmmm * cos(i * twicePi / triangleAmount)),
-            nnnn + (radiusmmm * sin(i * twicePi / triangleAmount)));
-    }
-    glEnd();
-    ////4th bird////
-    GLfloat mmmmm = -0.518f;
-    GLfloat nnnnn = .801f;
-
-    glBegin(GL_TRIANGLE_FAN);
-    glColor3ub(225, 225, 208);
-    glVertex2f(mmmmm, nnnnn); // center of circle
-    for (i = 0; i <= triangleAmount; i++)
-    {
-        glVertex2f(
-            mmmmm + (radiusmm * cos(i * twicePi / triangleAmount)),
-            nnnnn + (radiusmm * sin(i * twicePi / triangleAmount)));
-    }
-    glEnd();
+    
+    // === RIGHT WING (animated - mirrored) ===
     glBegin(GL_POLYGON);
-    glColor3ub(225, 225, 208);
-    glVertex2f(-0.6f, 0.8f);
-    glVertex2f(-0.59f, 0.79f);
-    glVertex2f(-0.58f, 0.78f);
-    glVertex2f(-0.54f, 0.77f);
-    glVertex2f(-0.51f, 0.79f);
-    glVertex2f(-0.499f, 0.8f);
+    glColor3ub(50, 50, 55);  // Slightly different shade
+    glVertex2f(-0.005f, -0.005f);  // Wing attachment point
+    glVertex2f(-0.015f, -0.015f - wingY * 0.5f);
+    glVertex2f(-0.025f, -0.032f - wingY);  // Wing tip (animated)
+    glVertex2f(-0.01f, -0.022f - wingY * 0.7f);
+    glVertex2f(0.005f, -0.012f - wingY * 0.3f);
+    glVertex2f(0.01f, -0.005f);
     glEnd();
+    
+    // Wing feather details (right)
+    glBegin(GL_LINES);
+    glColor3ub(65, 65, 70);
+    glVertex2f(-0.008f, -0.01f - wingY * 0.4f);
+    glVertex2f(-0.02f, -0.027f - wingY * 0.9f);
+    glVertex2f(-0.003f, -0.01f - wingY * 0.3f);
+    glVertex2f(-0.015f, -0.025f - wingY * 0.85f);
+    glEnd();
+    
+    // === CHEST HIGHLIGHT ===
+    glBegin(GL_TRIANGLE_FAN);
+    glColor3ub(75, 75, 80);  // Lighter chest
+    glVertex2f(0.01f, 0.0f);
+    for (i = 0; i <= 8; i++)
+    {
+        float angle = i * PI / 8 - PI/2;
+        glVertex2f(0.01f + 0.008f * cos(angle), 0.006f * sin(angle));
+    }
+    glEnd();
+    
+    glPopMatrix();
+}
 
-    glBegin(GL_TRIANGLES);
-    glColor3ub(217, 217, 217);
-    glVertex2f(-0.525f, 0.8f);
-    glVertex2f(-0.55f, 0.8f);
-    glVertex2f(-0.56f, 0.84f);
-    glEnd();
-
-    glBegin(GL_TRIANGLES);
-    glColor3ub(242, 242, 242);
-    glVertex2f(-0.525f, 0.8f);
-    glVertex2f(-0.556f, 0.8f);
-    glVertex2f(-0.58f, 0.83f);
-    glEnd();
+// Draw all birds with animation
+void bird()
+{
+    for (int i = 0; i < 6; i++) {
+        float yPos = birds[i].y + birds[i].verticalOffset;
+        drawSingleBird(birds[i].x, yPos, birds[i].scale, birds[i].wingPhase);
+    }
 }
 void stars()
 {
@@ -2430,10 +2449,8 @@ void display()
     cloud1();
     cloud2();
     glPopMatrix();
-    glPushMatrix();
-    glTranslatef(position22, 0.0f, 0.0f);
+    // Birds now handle their own positions with animated wings
     bird();
-    glPopMatrix();
     backgroundtree();
     river();
     glPushMatrix();
