@@ -78,7 +78,7 @@ void birdd(int value)
     if (position22 > 1.0f) position22 = -1.0f;
     
     glutPostRedisplay();
-    glutTimerFunc(16, birdd, 0);  // ~60 FPS for smooth animation
+    glutTimerFunc(16, birdd, 0); 
 }
 GLfloat position4 = 0.0f;
 GLfloat speed4 = -0.01f;
