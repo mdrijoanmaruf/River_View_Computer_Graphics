@@ -1,4 +1,4 @@
-# 📋 River View Computer Graphics - Function Documentation
+# 📋 River View Computer Graphics
 
 ## 🔧 Global Variables & Structures
 
