@@ -197,4 +197,4 @@
 
 - Md Rijoan Maruf (23-53347-3)
 - Sadia Islam Anusha (23-55670-3)
-- Jakiya Sultana Meduli (23-55439-3)
+- Jakiya Sultana Meduli (23-51243-1)
